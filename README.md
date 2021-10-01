@@ -3,7 +3,7 @@
 
 Hafez Ghaemi, Erfan Mirzaei, Mahbod Nouri, Saeed Reza Kheradpisheh
 
-arXiv: https:// 
+arXiv: https://https://arxiv.org/abs/2109.05539
 
 # Requirements 
 Python 3.7 , PyTorch == 1.8, Bindsnet
