@@ -3,8 +3,8 @@ import os
 import numpy as np
 
 from biolcnet import BioLCNet
-from utils.reward import DynamicDopamineInjection
-from utils.dataset import ClassSelector, load_datasets
+from reward import DynamicDopamineInjection
+from dataset import ClassSelector, load_datasets
 
 import matplotlib.pyplot as plt
 
