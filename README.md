@@ -6,15 +6,12 @@ Hafez Ghaemi, Erfan Mirzaei, Mahbod Nouri, Saeed Reza Kheradpisheh
 arXiv: https://https://arxiv.org/abs/2109.05539
 
 # Requirements 
-Python 3.7 , PyTorch == 1.8, Bindsnet
-
-Note: Newer versions of PyTorch will not work because we use 'container_abcs' from 'torch._six',
- which isn't compatible with 1.9.
 
 To install bindsnet you should only use the following command:
 ```
 !pip install -q git+https://github.com/bindsnet/bindsnet
 ``` 
+This will downgrade some of your installed packages includin PyTorch.
 
 # Main Experiments 
 
@@ -24,7 +21,7 @@ MNIST images. We use these features as pre-trained weights in the classification
 
 ### Image Classification 
 After transfering the weights from the pretrained features from the previous section, we 
-train the network to classify the MNIST dataset images. 
+train the network to classify the MNIST dataset images. You can also run "main.ipynb" for this experiment.
  
 ### Classical(Pavlovian) Conditioning
 In this experiment, we present the network with images belonging
