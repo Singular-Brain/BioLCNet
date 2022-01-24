@@ -47,9 +47,9 @@ class PostPre(LearningRule):
             self.source.traces and self.target.traces
         ), "Both pre- and post-synaptic nodes must record spike traces."
 
-        if isinstance(connection, (Connection)):
+        if isinstance(connection, (Connection, LocalConnection)):
             self.update = self._connection_update
-        elif isinstance(connection, (LocalConnection2D, LocalConnection)):
+        elif isinstance(connection, (LocalConnection2D)):
             self.update = self._local_connection_update
         else:
             raise NotImplementedError(
