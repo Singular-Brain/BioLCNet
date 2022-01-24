@@ -211,7 +211,7 @@ class BioLCNet(Network):
             a = torch.load(
                 LC_weights_path, map_location=torch.device("cuda" if gpu else "cpu")
             )
-            LC.w.data = a["state_dict"]["input_to_main1.w"]
+            LC.w.data = a["state_dict"]["input_to_main.w"]
             LC.nu = [0, 0]
             print("LC pre-trained weights loaded ...")
         else:
