@@ -56,6 +56,11 @@ class PostPre(LearningRule):
                 "This learning rule is not supported for this Connection type."
             )
 
+    def soft_bound_decay(self):
+        if self.connection.soft_bound:
+            return (self.connection.w - self.connection.wmin) * (self.connection.wmax - self.connection.w)
+        else:
+            return 1
 
     def _connection_update(self, **kwargs) -> None:
         """
@@ -126,11 +131,11 @@ class PostPre(LearningRule):
         # Pre-synaptic update.
         if self.nu[0]:
             pre = self.reduction(torch.bmm(target_x,source_s), dim=0)
-            self.connection.w -= self.nu[0] * pre.view(self.connection.w.size())
+            self.connection.w -= self.nu[0] * pre.view(self.connection.w.size()) * self.soft_bound_decay()
         # Post-synaptic update.
         if self.nu[1]:
             post = self.reduction(torch.bmm(target_s, source_x),dim=0)
-            self.connection.w += self.nu[1] * post.view(self.connection.w.size())
+            self.connection.w += self.nu[1] * post.view(self.connection.w.size()) * self.soft_bound_decay()
 
         super().update()
 
