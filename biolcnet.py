@@ -213,6 +213,7 @@ class BioLCNet(Network):
             )
             LC.w.data = a["state_dict"]["input_to_main.w"]
             LC.nu = [0, 0]
+            LC.update_rule = None
             print("LC pre-trained weights loaded ...")
         else:
             print(
