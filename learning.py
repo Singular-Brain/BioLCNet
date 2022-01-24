@@ -56,11 +56,6 @@ class PostPre(LearningRule):
                 "This learning rule is not supported for this Connection type."
             )
 
-    def soft_bound_decay(self):
-        if self.connection.soft_bound:
-            return (self.connection.w - self.connection.wmin) * (self.connection.wmax - self.connection.w)
-        else:
-            return 1
 
     def _connection_update(self, **kwargs) -> None:
         """
@@ -73,7 +68,7 @@ class PostPre(LearningRule):
         if self.nu[0]:
             source_s = self.source.s.view(batch_size, -1).unsqueeze(2).float().to(self.connection.w.device)
             target_x = (self.target.x.view(batch_size, -1).unsqueeze(1) * self.nu[0]).to(self.connection.w.device)
-            self.connection.w -= (self.reduction(torch.bmm(source_s, target_x), dim=0))*self.soft_bound_decay()
+            self.connection.w -= (self.reduction(torch.bmm(source_s, target_x), dim=0))
             del source_s, target_x
 
         # Post-synaptic update.
@@ -82,7 +77,7 @@ class PostPre(LearningRule):
                 self.target.s.view(batch_size, -1).unsqueeze(1).float() * self.nu[1]
             ).to(self.connection.w.device)
             source_x = self.source.x.view(batch_size, -1).unsqueeze(2).to(self.connection.w.device)
-            self.connection.w += (self.reduction(torch.bmm(source_x, target_s), dim=0))*self.soft_bound_decay()
+            self.connection.w += (self.reduction(torch.bmm(source_x, target_s), dim=0))
             del source_x, target_s
 
         super().update()
@@ -131,11 +126,11 @@ class PostPre(LearningRule):
         # Pre-synaptic update.
         if self.nu[0]:
             pre = self.reduction(torch.bmm(target_x,source_s), dim=0)
-            self.connection.w -= self.nu[0] * pre.view(self.connection.w.size()) * self.soft_bound_decay()
+            self.connection.w -= self.nu[0] * pre.view(self.connection.w.size())
         # Post-synaptic update.
         if self.nu[1]:
             post = self.reduction(torch.bmm(target_s, source_x),dim=0)
-            self.connection.w += self.nu[1] * post.view(self.connection.w.size()) * self.soft_bound_decay()
+            self.connection.w += self.nu[1] * post.view(self.connection.w.size())
 
         super().update()
 
