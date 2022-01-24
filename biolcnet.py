@@ -69,6 +69,7 @@ class BioLCNet(Network):
         out_convergence_vis: bool = False,
         online_rewarding: bool = False,
         gpu: bool = False,
+        LC_type:str = "LocalConnection",
         **kwargs,
     ) -> None:
 
@@ -176,20 +177,35 @@ class BioLCNet(Network):
         self.add_layer(main, name="main")
 
         ### connections
-        LC = LocalConnection(
-            inp,
-            main,
-            filter_size,
-            stride,
-            in_channels,
-            n_channels_lc,
-            input_shape=(crop_size, crop_size),
-            nu=_pair(nu_LC),
-            update_rule=PostPre,
-            wmin=wmin,
-            wmax=wmax,
-            norm=norm_factor_LC,
-        )
+        if LC_type == "LocalConnection":
+            LC = LocalConnection(
+                source= inp,
+                target= main,
+                kernel_size= filter_size,
+                stride= stride,
+                n_filters= n_channels_lc,
+                input_shape=(crop_size, crop_size),
+                nu=_pair(nu_LC),
+                update_rule=PostPre,
+                wmin=wmin,
+                wmax=wmax,
+                norm=norm_factor_LC,
+            )
+        elif LC_type == "LocalConnection2D":
+            LC = LocalConnection2D(
+                inp,
+                main,
+                filter_size,
+                stride,
+                in_channels,
+                n_channels_lc,
+                input_shape=(crop_size, crop_size),
+                nu=_pair(nu_LC),
+                update_rule=PostPre,
+                wmin=wmin,
+                wmax=wmax,
+                norm=norm_factor_LC,
+            )
 
         if LC_weights_path:
             a = torch.load(
