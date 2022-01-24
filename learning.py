@@ -5,8 +5,8 @@ import torch
 from bindsnet.network.topology import (
     AbstractConnection,
     Connection,
+    LocalConnection,
 )
-
 from locally_connected_multi_chan import LocalConnection2D
 from bindsnet.learning import LearningRule
 
@@ -49,7 +49,7 @@ class PostPre(LearningRule):
 
         if isinstance(connection, (Connection)):
             self.update = self._connection_update
-        elif isinstance(connection, LocalConnection2D):
+        elif isinstance(connection, (LocalConnection2D, LocalConnection)):
             self.update = self._local_connection_update
         else:
             raise NotImplementedError(

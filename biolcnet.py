@@ -4,8 +4,7 @@ import torch
 from torch.nn.modules.utils import _pair
 
 import collections
-from tqdm import tqdm
-
+from tqdm.notebook import tqdm
 from bindsnet.network.monitors import Monitor
 from monitors import RewardMonitor
 
@@ -15,7 +14,7 @@ from bindsnet.learning import MSTDP, NoOp
 from bindsnet.network.nodes import LIFNodes, AdaptiveLIFNodes
 from bindsnet.network.nodes import Input
 from bindsnet.network.network import Network
-from bindsnet.network.topology import Connection
+from bindsnet.network.topology import Connection, LocalConnection
 from bindsnet.encoding import PoissonEncoder
 
 from locally_connected_multi_chan import LocalConnection2D
@@ -177,7 +176,7 @@ class BioLCNet(Network):
         self.add_layer(main, name="main")
 
         ### connections
-        LC = LocalConnection2D(
+        LC = LocalConnection(
             inp,
             main,
             filter_size,
@@ -516,7 +515,6 @@ class BioLCNet(Network):
             val_accs = []
             train_accs = []
             acc_rewards = []
-        from tqdm.notebook import tqdm
 
         pbar = tqdm(total=n_train)
         self.reset_state_variables()
@@ -610,7 +608,7 @@ class BioLCNet(Network):
                 predicted_label.item(),
                 "GT:",
                 label.item(),
-                end="",
+                end="       ",
             )
 
             acc = 100 * sum(acc_hist) / len(acc_hist)
@@ -637,11 +635,6 @@ class BioLCNet(Network):
                     }
                     torch.save(model_params, self.save_path)
 
-            print(
-                "\nRunning accuracy: "
-                + "{:.2f}".format(acc)
-                + "%"
-            )
             self.reset_state_variables()  # Reset state variables.
             pbar.set_description_str(
                 "Running accuracy: "
