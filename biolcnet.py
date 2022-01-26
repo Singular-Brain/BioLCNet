@@ -9,7 +9,7 @@ from bindsnet.network.monitors import Monitor
 from monitors import RewardMonitor
 
 from learning import PostPre
-from bindsnet.learning import MSTDP, NoOp
+from bindsnet.learning import MSTDP
 
 from bindsnet.network.nodes import LIFNodes, AdaptiveLIFNodes
 from bindsnet.network.nodes import Input
@@ -185,8 +185,8 @@ class BioLCNet(Network):
                 stride= stride,
                 n_filters= n_channels_lc,
                 input_shape=(crop_size, crop_size),
-                nu=_pair(nu_LC),
-                update_rule=PostPre,
+                nu=None if LC_weights_path else nu_LC,
+                update_rule=None if LC_weights_path else PostPre,
                 wmin=wmin,
                 wmax=wmax,
                 norm=norm_factor_LC,
@@ -200,8 +200,8 @@ class BioLCNet(Network):
                 in_channels,
                 n_channels_lc,
                 input_shape=(crop_size, crop_size),
-                nu=_pair(nu_LC),
-                update_rule=PostPre,
+                nu=None if LC_weights_path else nu_LC,
+                update_rule=None if LC_weights_path else PostPre,
                 wmin=wmin,
                 wmax=wmax,
                 norm=norm_factor_LC,
@@ -212,9 +212,7 @@ class BioLCNet(Network):
                 LC_weights_path, map_location=torch.device("cuda" if gpu else "cpu")
             )
             LC.w.data = a["state_dict"]["input_to_main.w"]
-            LC.nu = [0, 0]
-            LC.update_rule = None
-            print("LC pre-trained weights loaded ...")
+            print("LC pre-trained weights loaded. Disabling learning for LC layer.")
         else:
             print(
                 "LC pre-trained weights not loaded. Training will be end-to-end and will take more time!"
