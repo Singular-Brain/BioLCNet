@@ -53,7 +53,7 @@ def load_datasets(data_hparams, target_classes=None, mask=None, mask_test=None):
                                             sampler = ClassSelector(
                                                     target_classes = target_classes,
                                                     data_source = dataset,
-                                                    mask = mask_test,
+                                                    mask = mask,
                                                     ) if target_classes else None
                                             )
 
@@ -75,7 +75,7 @@ def load_datasets(data_hparams, target_classes=None, mask=None, mask_test=None):
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1,
                                         sampler = ClassSelector(
                                                 target_classes = target_classes,
-                                                data_source = dataset,
+                                                data_source = test_dataset,
                                                 mask = mask_test,
                                                 ) if target_classes else None
                                         )
