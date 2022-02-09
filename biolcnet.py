@@ -252,7 +252,7 @@ class BioLCNet(Network):
                 for w1 in range(main_width):
                     for w2 in range(main_width):
                         for target_c in range(n_channels_lc):
-                            w_inh_LC[source_c,w1,w2,target_c,w1,w2] = -inh_factor_LC* (-ring_inh_intensity + math.cos((source_c-target_c)*2*math.pi/n_channels_lc))
+                            w_inh_LC[source_c,w1,w2,target_c,w1,w2] = inh_factor_LC* (-ring_inh_intensity + math.cos((source_c-target_c)*2*math.pi/n_channels_lc))
                             w_inh_LC[source_c,w1,w2,source_c,w1,w2] = 0
 
             w_inh_LC = w_inh_LC.reshape(main.n, main.n)
