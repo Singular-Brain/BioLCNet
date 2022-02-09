@@ -1,4 +1,5 @@
 from typing import Union, Tuple, Dict
+import math 
 
 import torch
 from torch.nn.modules.utils import _pair
@@ -49,6 +50,7 @@ class BioLCNet(Network):
         nu_Output: float,
         dt: float,
         crop_size: int,
+        inh_type_LC,
         inh_type_FC,
         inh_factor_LC: float,
         inh_factor_FC: float,
@@ -60,6 +62,7 @@ class BioLCNet(Network):
         norm_factor_LC,
         load_path,
         save_path,
+        ring_inh_intensity = 0.5,
         LC_weights_path=None,
         trace_additive: bool = False,
         confusion_matrix: bool = False,
@@ -221,29 +224,53 @@ class BioLCNet(Network):
         self.add_connection(LC, "input", "main")
         self.convergences["lc"] = []
 
-        ### LC inhibition
         main_width = compute_size(crop_size, filter_size, stride)
-        w_inh_LC = torch.zeros(
-            n_channels_lc, main_width, main_width, n_channels_lc, main_width, main_width
-        )
-        for c in range(n_channels_lc):
-            for w1 in range(main_width):
-                for w2 in range(main_width):
-                    w_inh_LC[c, w1, w2, :, w1, w2] = -inh_factor_LC
-                    w_inh_LC[c, w1, w2, c, w1, w2] = 0
+        ### LC inhibition
+        if inh_type_LC == "recurrent":
+            w_inh_LC = torch.zeros(
+                n_channels_lc, main_width, main_width, n_channels_lc, main_width, main_width
+            )
+            for c in range(n_channels_lc):
+                for w1 in range(main_width):
+                    for w2 in range(main_width):
+                        w_inh_LC[c, w1, w2, :, w1, w2] = -inh_factor_LC
+                        w_inh_LC[c, w1, w2, c, w1, w2] = 0
 
-        w_inh_LC = w_inh_LC.reshape(main.n, main.n)
+            w_inh_LC = w_inh_LC.reshape(main.n, main.n)
 
-        LC_recurrent_inhibition = Connection(
-            source=main,
-            target=main,
-            w=w_inh_LC,
-        )
-        self.add_connection(LC_recurrent_inhibition, "main", "main")
+            LC_recurrent_inhibition = Connection(
+                source=main,
+                target=main,
+                w=w_inh_LC,
+            )
+            self.add_connection(LC_recurrent_inhibition, "main", "main")
+        elif inh_type_LC == "recurrent_ring":
+            w_inh_LC = torch.zeros(
+                n_channels_lc, main_width, main_width, n_channels_lc, main_width, main_width
+            )
+            for source_c in range(n_channels_lc):
+                for w1 in range(main_width):
+                    for w2 in range(main_width):
+                        for target_c in range(n_channels_lc):
+                            w_inh_LC[source_c,w1,w2,target_c,w1,w2] = -inh_factor_LC* (-ring_inh_intensity + math.cos((source_c-target_c)*2*math.pi/n_channels_lc))
+                            w_inh_LC[source_c,w1,w2,source_c,w1,w2] = 0
+
+            w_inh_LC = w_inh_LC.reshape(main.n, main.n)
+
+            LC_recurrent_inhibition = Connection(
+                source=main,
+                target=main,
+                w=w_inh_LC,
+            )
+            self.add_connection(LC_recurrent_inhibition, "main", "main")
+
+        else:
+            if inh_type_LC is not None:
+                raise ValueError("inh_type_FC must be one of 'recurrent' or 'recurrent_ring' or None")
+
 
         self.final_connection_source_name = "main"
         self.final_connection_source = main
-
         ### main to output
         out = LIFNodes(
             n=n_neurons,
@@ -295,6 +322,9 @@ class BioLCNet(Network):
             )
             self.add_connection(out_recurrent_inhibition, "output", "output")
 
+        else:
+            if inh_type_FC is not None:
+                raise ValueError("inh_type_FC must be one of 'between_layers' or 'one_2_all' or None")
         # Directs network to self.self.gpu
         if self.gpu:
             self.to("cuda")
