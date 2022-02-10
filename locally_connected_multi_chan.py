@@ -5,6 +5,7 @@ import torch
 from torch.nn.modules.utils import _pair
 
 from bindsnet.network.nodes import Nodes
+from bindsnet.learning import NoOp
 from torch.nn.parameter import Parameter
 from bindsnet.network.topology import AbstractConnection
 
@@ -62,11 +63,8 @@ class LocalConnection2D(AbstractConnection):
 
         super().__init__(source, target, nu, reduction, weight_decay, **kwargs)
 
-        kernel_size = _pair(kernel_size)
-        stride = _pair(stride)
-
-        self.kernel_size = kernel_size
-        self.stride = stride
+        self.kernel_size = _pair(kernel_size)
+        self.stride = _pair(stride)
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.padding = kwargs.get('padding', 0)
@@ -109,6 +107,11 @@ class LocalConnection2D(AbstractConnection):
         self.w = Parameter(w, requires_grad=False)
         self.b = Parameter(kwargs.get("b", None), requires_grad=False)
 
+
+        self._active_update_rule = self.update_rule 
+        self._deactivated_update_rule= NoOp(
+            connection=self,
+        )
 
     def compute(self, s: torch.Tensor) -> torch.Tensor:
         """
@@ -174,3 +177,36 @@ class LocalConnection2D(AbstractConnection):
         super().reset_state_variables()
 
         self.target.reset_state_variables()
+
+
+    def activate_learning(self):
+        self.update_rule = self._active_update_rule
+
+    def deactivate_learning(self):
+        self.update_rule = self._deactivated_update_rule
+
+class DepthWiseLocalConnection2D(LocalConnection2D):
+    # w: ch_in, ch_out * w_out * h_out, k ** 2
+    def __init__(self, kernel_depth, **kwargs):
+        super().__init__(**kwargs)
+        self.kernel_depth = kernel_depth
+        assert (
+            self.out_channels % (self.in_channels - self.kernel_depth + 1) ,
+            f"out_channels (={self.out_channels}) must be a divisible by in_channels - kernel_depth + 1 (={self.in_channels - self.kernel_depth + 1})"
+        )
+        n_same_depth_filters = self.out_channels // (self.in_channels - self.kernel_depth + 1) 
+        self.mask = torch.zeros_like(self.w)
+        for depth in range(self.in_channels - self.kernel_depth):
+            self.mask[
+                depth:depth+self.kernel_depth, 
+                n_same_depth_filters*depth*self.conv_prod:n_same_depth_filters*(depth+1)*self.conv_prod,
+                :] = 1
+    
+    
+    def update(self, **kwargs) -> None:
+        """
+        Compute connection's update rule.
+        """
+        if kwargs["mask"] is None:
+            kwargs["mask"] = self.mask
+        super().update(**kwargs)
