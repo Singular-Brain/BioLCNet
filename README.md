@@ -11,7 +11,7 @@ To install bindsnet you should only use the following command:
 ```
 !pip install -q git+https://github.com/bindsnet/bindsnet
 ``` 
-This will downgrade some of your installed packages includin PyTorch.
+This will downgrade some of your installed packages including PyTorch.
 
 # Main Experiments 
 
