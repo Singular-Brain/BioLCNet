@@ -3,6 +3,8 @@
 
 Hafez Ghaemi, Erfan Mirzaei, Mahbod Nouri, Saeed Reza Kheradpisheh
 
+DOI: https://doi.org/10.1007/978-3-031-25891-6_42
+
 arXiv: https://arxiv.org/abs/2109.05539
 
 # Requirements 
